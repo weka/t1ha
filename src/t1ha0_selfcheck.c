@@ -94,7 +94,7 @@ const uint64_t t1ha_refval_32be[81] = { 0,
   0xEA08F8BFB2039CDE, 0xCCC6D04D243EC753, 0x8977D105298B0629, 0x7AAA976494A5905E
 };
 
-#if T1HA0_AESNI_AVAILABLE
+#if T1HA0_AESNI_AVAILABLE || T1HA0_NEON_AVAILABLE
 const uint64_t t1ha_refval_ia32aes_a[81] = { 0,
   0x772C7311BE32FF42, 0xB231AC660E5B23B5, 0x71F6DF5DA3B4F532, 0x555859635365F660,
   0xE98808F1CD39C626, 0x2EB18FAF2163BB09, 0x7B9DD892C8019C87, 0xE2B1431C4DA4D15A,
@@ -169,6 +169,13 @@ __cold int t1ha_selfcheck__t1ha0_ia32aes_avx2(void) {
 #endif /* ! __e2k__ */
 #endif /* if T1HA0_AESNI_AVAILABLE */
 
+#if T1HA0_NEON_AVAILABLE
+__cold int t1ha_selfcheck__t1ha0_aes_neon(void) {
+  return t1ha_selfcheck(t1ha0_arm64aes_neon, t1ha_refval_ia32aes_a);
+}
+#endif
+
+
 __cold int t1ha_selfcheck__t1ha0(void) {
   int rc = t1ha_selfcheck__t1ha0_32le() | t1ha_selfcheck__t1ha0_32be();
 
@@ -197,6 +204,9 @@ __cold int t1ha_selfcheck__t1ha0(void) {
   }
 #endif /* __e2k__ */
 #endif /* T1HA0_AESNI_AVAILABLE */
+#if T1HA0_NEON_AVAILABLE
+  rc |= t1ha_selfcheck__t1ha0_aes_neon();
+#endif
 
   return rc;
 }

@@ -27,6 +27,7 @@ CXXFLAGS = -std=c++11 $(filter-out -std=c11,$(CFLAGS))
 TARGET_ARCH_e2k ?= $(shell (export LC_ALL=C; ($(CC) --version 2>&1; $(CC) -v 2>&1) | grep -q -i 'e2k' && echo yes || echo no))
 TARGET_ARCH_ia32 ?= $(shell (export LC_ALL=C; ($(CC) --version 2>&1; $(CC) -v 2>&1) | grep -q -i -e '^Target: \(x86_64\)\|\([iI][3-6]86\)-.*' && echo yes || echo no))
 TARGET_ARCH_ppc ?= $(shell (export LC_ALL=C; ($(CC) --version 2>&1; $(CC) -v 2>&1) | grep -q -i -e '^Target: powerpc.*' && echo yes || echo no))
+TARGET_ARCH_aarch64 ?= $(shell (export LC_ALL=C; ($(CC) --version 2>&1; $(CC) -v 2>&1) | grep -q -i -e '^Target: \(aarch64\)\|\(arm64\)-.*' && echo yes || echo no))
 
 OBJ_LIST := t1ha0.o t1ha1.o t1ha2.o t1ha0_selfcheck.o t1ha1_selfcheck.o t1ha2_selfcheck.o t1ha_selfcheck.o t1ha_selfcheck_all.o
 BENCH_EXTRA := bench.o mera.o test.o 4bench_xxhash.o 4bench_stadtx.o  4bench_wyhash.o 4bench_highwayhash_test.o 4bench_highwayhash_pure_c.o 4bench_highwayhash_portable.o
@@ -40,6 +41,11 @@ TARGET_ARCH := ia32
 CFLAGS += -mtune=native
 OBJ_LIST += t1ha0_aes_noavx.o t1ha0_aes_avx.o t1ha0_aes_avx2.o
 BENCH_EXTRA += 4bench_t1ha0_aes_noavx.o 4bench_t1ha0_aes_avx.o 4bench_t1ha0_aes_avx2.o
+else ifeq ($(TARGET_ARCH_aarch64),yes)
+TARGET_ARCH := aarch64
+CFLAGS += -mtune=native
+OBJ_LIST += t1ha0_aes_neon.o
+# BENCH_EXTRA += 4bench_t1ha0_aes_noavx.o 4bench_t1ha0_aes_avx.o 4bench_t1ha0_aes_avx2.o
 else
 TARGET_ARCH := portable
 endif
@@ -86,6 +92,10 @@ t1ha0_aes_avx2.o_ARCH_ia32_CFLAGS = -mavx2 -mavx -maes
 t1ha0_aes_avx2.o: t1ha.h src/t1ha_bits.h src/t1ha0_ia32aes_a.h src/t1ha0_ia32aes_b.h src/t1ha0_ia32aes_avx2.c Makefile
 	$(CC) $(CFLAGS_LIB) -save-temps $($(@)_ARCH_$(TARGET_ARCH)_CFLAGS) -c -o $@ src/t1ha0_ia32aes_avx2.c
 
+t1ha0_aes_neon.o_ARCH_aarch64_CFLAGS = -march=armv8.2-a+sve
+t1ha0_aes_neon.o: t1ha.h src/t1ha_bits.h src/t1ha0_arm64neon_a.h src/t1ha0_arm64aes_neon.c src/sse2neon.h Makefile
+		$(CC) $(CFLAGS_LIB) -save-temps $($(@)_ARCH_$(TARGET_ARCH)_CFLAGS) -c -o $@ src/t1ha0_arm64aes_neon.c
+
 4bench_t1ha0_aes_noavx.o_ARCH_ia32_CFLAGS = -mno-avx2 -mno-avx -maes
 4bench_t1ha0_aes_noavx.o: t1ha.h src/t1ha_bits.h src/t1ha0_ia32aes_a.h src/t1ha0_ia32aes_b.h tests/4bench_t1ha0_ia32aes_noavx.c Makefile
 	$(CC) $(CFLAGS_LIB) $($(@)_ARCH_$(TARGET_ARCH)_CFLAGS) -c -o $@ tests/4bench_t1ha0_ia32aes_noavx.c
@@ -97,6 +107,10 @@ t1ha0_aes_avx2.o: t1ha.h src/t1ha_bits.h src/t1ha0_ia32aes_a.h src/t1ha0_ia32aes
 4bench_t1ha0_aes_avx2.o_ARCH_ia32_CFLAGS = -mavx2 -mavx -maes
 4bench_t1ha0_aes_avx2.o: t1ha.h src/t1ha_bits.h src/t1ha0_ia32aes_a.h src/t1ha0_ia32aes_b.h tests/4bench_t1ha0_ia32aes_avx2.c Makefile
 	$(CC) $(CFLAGS_LIB) $($(@)_ARCH_$(TARGET_ARCH)_CFLAGS) -c -o $@ tests/4bench_t1ha0_ia32aes_avx2.c
+
+4bench_t1ha0_aes_neon.o_ARCH_aarch64_CFLAGS = -march=armv8.2-a+sve
+4bench_t1ha0_aes_neon.o: t1ha.h src/t1ha_bits.h src/t1ha0_arm64neon_a.h  tests/4bench_t1ha0_arm64aes_neon.c Makefile
+		$(CC) $(CFLAGS_LIB) $($(@)_ARCH_$(TARGET_ARCH)_CFLAGS) -c -o $@ tests/4bench_t1ha0_arm64aes_neon.c
 
 t1ha1.o: t1ha.h src/t1ha_bits.h src/t1ha1.c Makefile
 	$(CC) $(CFLAGS_LIB) -c -o $@ src/t1ha1.c

@@ -466,6 +466,15 @@ T1HA_API int t1ha_selfcheck__t1ha0(void);
 #endif
 #endif /* ifndef T1HA0_AESNI_AVAILABLE */
 
+#ifndef TIHA0_NEON_AVAILABLE
+/* NB: we are assuming that NEON is available everywhere on ARM */
+#if defined(__aarch64__)
+#define T1HA0_NEON_AVAILABLE 1
+#else
+#define T1HA0_NEON_AVAILABLE 0
+#endif
+#endif
+
 #if T1HA0_AESNI_AVAILABLE
 T1HA_API int t1ha_selfcheck__t1ha0_ia32aes_noavx(void);
 T1HA_API int t1ha_selfcheck__t1ha0_ia32aes_avx(void);
@@ -473,6 +482,11 @@ T1HA_API int t1ha_selfcheck__t1ha0_ia32aes_avx(void);
 T1HA_API int t1ha_selfcheck__t1ha0_ia32aes_avx2(void);
 #endif
 #endif /* if T1HA0_AESNI_AVAILABLE */
+
+#if T1HA0_NEON_AVAILABLE
+T1HA_API int t1ha_selfcheck__t1ha0_arm64_neon(void);
+#endif
+
 #endif /* T1HA0_DISABLED */
 
 /******************************************************************************
@@ -608,6 +622,14 @@ uint64_t t1ha0_32be(const void *data, size_t length, uint64_t seed);
 #endif
 #endif /* T1HA0_RUNTIME_SELECT */
 
+#ifndef T1HA0_NEON_AVAILABLE
+#if defined(__aarch64__)
+#define T1HA0_NEON_AVAILABLE 1
+#else
+#define T1HA0_NEON_AVAILABLE 0
+#endif
+#endif
+
 #if !T1HA0_RUNTIME_SELECT && !defined(T1HA0_USE_DEFINE)
 #if defined(__LCC__)
 #define T1HA0_USE_DEFINE 1
@@ -623,6 +645,10 @@ uint64_t t1ha0_ia32aes_avx(const void *data, size_t length, uint64_t seed);
 uint64_t t1ha0_ia32aes_avx2(const void *data, size_t length, uint64_t seed);
 #endif
 #endif /* T1HA0_AESNI_AVAILABLE */
+
+#if T1HA0_NEON_AVAILABLE
+uint64_t t1ha0_arm64aes_neon(const void *data, size_t length, uint64_t seed);
+#endif
 
 #if T1HA0_RUNTIME_SELECT
 typedef uint64_t (*t1ha0_function_t)(const void *, size_t, uint64_t);

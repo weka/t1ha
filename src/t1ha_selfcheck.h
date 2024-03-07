@@ -73,4 +73,7 @@ extern const uint64_t t1ha_refval_32be[81];
 extern const uint64_t t1ha_refval_ia32aes_a[81];
 extern const uint64_t t1ha_refval_ia32aes_b[81];
 #endif /* T1HA0_AESNI_AVAILABLE */
+#if T1HA0_NEON_AVAILABLE
+extern const uint64_t t1ha_refval_ia32aes_a[81];
+#endif
 #endif /* T1HA0_DISABLED */
