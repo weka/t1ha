@@ -123,6 +123,12 @@ void bench_size(const unsigned size, const char *caption) {
   }
 
 #endif /* T1HA0_AESNI_AVAILABLE */
+
+#if T1HA0_NEON_AVAILABLE
+  if (is_selected(bench_aes)) {
+    bench("t1ha0_arm64_neon", t1ha0_arm64aes_neon, buffer, size, seed);
+  }
+#endif
 #endif /* T1HA0_DISABLED */
 
   if (is_selected(bench_xxhash)) {

@@ -35,6 +35,9 @@ const unsigned available_eas_flags =
     bench_avx2 |
 #endif /* !__e2k__ */
 #endif /* T1HA0_AESNI_AVAILABLE */
+#if T1HA0_NEON_AVAILABLE
+  bench_aes |
+#endif
     0u;
 
 const unsigned default_disabled_option_flags =
